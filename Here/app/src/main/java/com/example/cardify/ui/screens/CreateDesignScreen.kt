@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -21,7 +20,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -32,7 +30,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -47,7 +44,6 @@ fun CreateDesignScreen(
     onCardSelected: (String, String) -> Unit, 
     onCancelClick: () -> Unit
 ) {
-    val context = LocalContext.current
     val designs = remember(generatedCardImages) {
         if (generatedCardImages.isNotEmpty()) {
             // Use generated card images if available
@@ -72,61 +68,30 @@ fun CreateDesignScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
-            .padding(16.dp)
+            .background(Color(0xFFF7F3F0))
+            .padding(horizontal = 16.dp, vertical = 24.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Top section with title and progress
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 16.dp)
-        ) {
-            // Back/Cancel button
-            TextButton(
-                onClick = onCancelClick,
-                modifier = Modifier.align(Alignment.CenterStart)
-            ) {
-                Text(
-                    text = if (isFirst) "Cancel" else "Back",
-                    color = Color.Gray
-                )
-            }
-
-            // Title
-            Text(
-                text = "Card Design",
-                modifier = Modifier.align(Alignment.Center),
-                fontWeight = FontWeight.Bold,
-                fontSize = 18.sp
-            )
-
-            // Progress indicator
-            Text(
-                text = "4/5",
-                modifier = Modifier.align(Alignment.CenterEnd),
-                color = PrimaryTeal
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Instructions
+        // Title
         Text(
-            text = if (isFirst)
-                "내 명함을 선택해주세요!"
-            else
-                "새로운 명함이 생성되었어요.\n" + "AI가 분석한 당신의 취향을 확인해보세요. ",
-            textAlign = TextAlign.Center,
-            modifier = Modifier.fillMaxWidth(),
-            color = Color.Gray
+            text = "내 명함을 선택해주세요!",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = PrimaryTeal,
+            modifier = Modifier.align(Alignment.Start)
         )
-
-        Spacer(modifier = Modifier.height(24.dp))
-
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "새로운 명함이 생성되었어요.\nAI가 분석한 당신의 취향을 확인해보세요.",
+            color = PrimaryTeal,
+            fontSize = 15.sp,
+            modifier = Modifier.align(Alignment.Start)
+        )
+        Spacer(modifier = Modifier.height(32.dp))
         // Card grid
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(0.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -134,11 +99,11 @@ fun CreateDesignScreen(
             CardDesignItem(
                 design = design,
                 onClick = {
-                    val base64Image = design.imageUrl.takeIf { it.isNotBlank() }
+                    val base64Image = design.imageUrl.takeIf { it.isNotBlank() } 
                         ?: design.imageResId?.let { resId ->
                             // Convert drawable to Base64
                             val bitmap = BitmapFactory.decodeResource(
-                                context.resources,
+                                LocalContext.current.resources,
                                 resId
                             )
                             ImageUtils.bitmapToBase64(bitmap)
@@ -154,7 +119,7 @@ fun CreateDesignScreen(
 @Composable
 fun CardDesignItem(
     design: CardDesign,
-    onClick: () -> Unit
+    onClick: @Composable () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -162,7 +127,7 @@ fun CardDesignItem(
             .aspectRatio(0.63f) // Business card ratio
             .clip(RoundedCornerShape(8.dp))
             .border(1.dp, Color.LightGray, RoundedCornerShape(8.dp))
-            .clickable(onClick = onClick)
+            .clickable(onClick = onClick as () -> Unit)
     ) {
         if (design.imageUrl.isNotEmpty()) {
             // For network images
@@ -173,22 +138,22 @@ fun CardDesignItem(
                 modifier = Modifier.fillMaxSize()
             )
         } else if (design.imageResId != null) {
-            // For local resources
-            Image(
-                painter = painterResource(id = design.imageResId),
-                contentDescription = "Card design ${design.id}",
-                modifier = Modifier.fillMaxSize(),
-                contentScale = ContentScale.Crop
-            )
-        } else {
-            // Fallback in case no image is provided
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.LightGray),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("No Image", color = Color.Gray)
+                // For local resources
+                Image(
+                    painter = painterResource(id = design.imageResId),
+                    contentDescription = "Card design ${design.id}",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Fallback in case no image is provided
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.LightGray),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("No Image", color = Color.Gray)
             }
         }
     }

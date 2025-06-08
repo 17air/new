@@ -36,33 +36,13 @@ import com.example.cardify.ui.theme.PrimaryTeal
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateQuestionScreen(
-    questionNumber: Int,
-    onAnswerSelected: (String) -> Unit,
-    onCancelClick: () -> Unit
+    currentQuestionIndex: Int,
+    totalQuestions: Int = 10,
+    question: String,
+    options: List<String>,
+    onSelectAnswer: (Int) -> Unit,
+    onCancel: () -> Unit
 ) {
-    val questions = listOf(
-        "나를 가장 잘 표현하는 말은?",
-        "두 번째 질문입니다.",
-        "세 번째 질문입니다.",
-        "네 번째 질문입니다.",
-        "다섯 번째 질문입니다."
-    )
-
-    val options = when (questionNumber) {
-        1 -> listOf(
-            "깔끔, 단정.\n커리어우먼(맨)의\n성실",
-            "열정영업정신!\n모든 일에 진심인\n활발한 열정파",
-            "내 깊은 사람은\n자유로워,\n통통 튀는 개성파",
-            "내가 불어넣\n열여 나의지\n엔지니어 부처"
-        )
-        else -> listOf(
-            "질문에 대한\n답변\n선택지 1",
-            "질문에 대한\n답변\n선택지 2",
-            "질문에 대한\n답변\n선택지 3",
-            "질문에 대한\n답변\n선택지 4"
-        )
-    }
-
     var selectedOption by remember { mutableStateOf(-1) }
 
     Column(
@@ -100,72 +80,38 @@ fun CreateQuestionScreen(
         )
 
         // Question
-        if (questionNumber <= questions.size) {
-            Text(
-                text = questions[questionNumber - 1],
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
+        Text(
+            text = question,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         androidx.compose.foundation.layout.Spacer(
             modifier = Modifier.height(24.dp)
         )
 
         // Options
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OptionCard(
-                text = options[0],
-                isSelected = selectedOption == 0,
-                onClick = {
-                    selectedOption = 0
-                    onAnswerSelected("0")
-                },
-                modifier = Modifier.weight(1f)
-            )
-
-            OptionCard(
-                text = options[1],
-                isSelected = selectedOption == 1,
-                onClick = {
-                    selectedOption = 1
-                    onAnswerSelected("1")
-                },
-                modifier = Modifier.weight(1f)
-            )
-        }
-
-        androidx.compose.foundation.layout.Spacer(
-            modifier = Modifier.height(12.dp)
-        )
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OptionCard(
-                text = options[2],
-                isSelected = selectedOption == 2,
-                onClick = {
-                    selectedOption = 2
-                    onAnswerSelected("2")
-                },
-                modifier = Modifier.weight(1f)
-            )
-
-            OptionCard(
-                text = options[3],
-                isSelected = selectedOption == 3,
-                onClick = {
-                    selectedOption = 3
-                    onAnswerSelected("3")
-                },
-                modifier = Modifier.weight(1f)
-            )
+        for (row in 0 until 2) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                for (col in 0 until 2) {
+                    val idx = row * 2 + col
+                    OptionCard(
+                        text = options[idx],
+                        isSelected = selectedOption == idx,
+                        onClick = {
+                            selectedOption = idx
+                            // Highlight briefly, then auto-proceed
+                            onSelectAnswer(idx)
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+            if (row == 0) Spacer(modifier = Modifier.height(12.dp))
         }
 
         androidx.compose.foundation.layout.Spacer(
@@ -174,7 +120,7 @@ fun CreateQuestionScreen(
 
         // Progress Bar
         LinearProgressIndicator(
-            progress = questionNumber / 10f,
+            progress = (currentQuestionIndex + 1) / totalQuestions.toFloat(),
             modifier = Modifier.fillMaxWidth(),
             color = PrimaryTeal
         )
@@ -185,7 +131,7 @@ fun CreateQuestionScreen(
 
         // Cancel Button
         OutlinedButton(
-            onClick = onCancelClick,
+            onClick = onCancel,
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)

@@ -30,12 +30,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.cardify.R
+import com.example.cardify.ui.components.Base64Image
 import com.example.cardify.ui.theme.PrimaryTeal
 
 @Composable
 fun CreateConfirmScreen(
     isComplete: Boolean = false,
     selectedCardId: String,
+    selectedCardImage: String? = null,
     onConfirmClick: () -> Unit,
     onBackClick: () -> Unit,
     onAddDetailsClick: () -> Unit = {},
@@ -96,7 +98,7 @@ fun CreateConfirmScreen(
                             .fillMaxSize()
                             .clip(RoundedCornerShape(8.dp))
                     ) {
-                        CardImage(selectedCardId)
+                        CardImage(cardId = selectedCardId, imageUrl = selectedCardImage)
                     }
                 }
             }
@@ -175,58 +177,36 @@ fun CreateConfirmScreen(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
-            Button(
+            OutlinedButton(
                 onClick = onBackClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    contentColor = PrimaryTeal
-                ),
-                border = BorderStroke(1.dp, PrimaryTeal)
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                border = BorderStroke(1.dp, PrimaryTeal),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = PrimaryTeal)
             ) {
-                Text("다시 선택할게요.")
+                Text("다시 선택할게요.", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             Button(
                 onClick = onConfirmClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryTeal,
-                    contentColor = Color.White
-                )
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryTeal, contentColor = Color.White)
             ) {
-                Text("명함 생성 완료하기")
+                Text("이 명함으로 결정할게요.", fontWeight = FontWeight.Bold, fontSize = 16.sp)
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Button(
-                onClick = onSaveClick,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.White,
-                    contentColor = PrimaryTeal
-                ),
-                border = BorderStroke(1.dp, PrimaryTeal)
-            ) {
-                Text("저장")
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             OutlinedButton(
                 onClick = { /* Cancel creation */ },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+                modifier = Modifier.fillMaxWidth().height(54.dp),
+                border = BorderStroke(1.dp, Color(0xFFE0E0E0)),
+                colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.Gray)
             ) {
-                Text("명함 제작 취소하기")
+                Text("명함 제작 취소하기", fontWeight = FontWeight.Normal, fontSize = 16.sp)
             }
         }
     }
@@ -238,13 +218,16 @@ fun CardImage(
     imageUrl: String? = null
 ) {
     if (!imageUrl.isNullOrEmpty()) {
-        // For network images
-        AsyncImage(
-            model = imageUrl,
-            contentDescription = "Business Card Design",
-            modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop
-        )
+        if (imageUrl.length > 200) { // crude base64 check
+            Base64Image(base64 = imageUrl, modifier = Modifier.fillMaxSize(), contentDescription = "Business Card Design")
+        } else {
+            AsyncImage(
+                model = imageUrl,
+                contentDescription = "Business Card Design",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
     } else {
         // For local drawable resources (fallback)
         val cardResource = when (cardId) {

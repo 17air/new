@@ -28,6 +28,7 @@ import com.example.cardify.ui.screens.MainExistScreen
 import com.example.cardify.ui.screens.OcrNerScreen
 import com.example.cardify.ui.screens.CardBookScreen
 import com.example.cardify.ui.screens.SettingsScreen
+import com.example.cardify.features.QuestionBank
 import com.example.cardify.models.CardBookViewModel
 import com.example.cardify.ui.screens.RegisterCompleteScreen
 import com.example.cardify.ui.screens.RegisterScreen
@@ -180,32 +181,42 @@ fun AppNavigation() {
                 onNextClick = { navController.navigate(Screen.CreateQuestion.route) },
                 onBackClick = { navController.popBackStack() },
                 viewModel = cardCreationViewModel,
-                token = token
+                token = token,
+                onNavigateToCreateQuestion = { navController.navigate(Screen.CreateQuestion.route) }
             )
         }
 
         composable(route = Screen.CreateQuestion.route) {
+            val question = remember(currentQuestion) {
+                QuestionBank.questions[currentQuestion - 1]
+            }
             CreateQuestionScreen(
-                questionNumber = currentQuestion,
-                onAnswerSelected = { answer ->
+                currentQuestionIndex = currentQuestion - 1,
+                totalQuestions = QuestionBank.questions.size,
+                question = question.question,
+                options = question.options,
+                onSelectAnswer = { index ->
+                    val answer = question.options[index]
                     cardCreationViewModel.recordAnswer(currentQuestion, answer)
-                    if (currentQuestion >= 5) {
+                    if (currentQuestion >= QuestionBank.questions.size) {
                         navController.navigate(Screen.CreateProgress.route)
                     }
                 },
-                onCancelClick = {
+                onCancel = {
                     cardCreationViewModel.resetCreation()
                     navController.popBackStack(Screen.CreateEssentials.route, inclusive = true)
-                },
+                }
             )
         }
 
         composable(route = Screen.CreateProgress.route) {
             val tokenManager = TokenManager(LocalContext.current)
             val token = tokenManager.getToken() ?: ""
+            val answers by cardCreationViewModel.answers.collectAsState()
 
             CreateProgressScreen(
                 cardInfo = cardInfo,
+                userAnswers = answers.toSortedMap().values.toList(),
                 viewModel = cardCreationViewModel,
                 token = token,
                 cardBookViewModel = cardBookViewModel,
@@ -283,6 +294,8 @@ fun AppNavigation() {
                 }
             }
         }
+
+
 
         composable(route = Screen.CardBook.route) {
             val cards by cardBookViewModel.cards.collectAsState()
