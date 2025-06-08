@@ -52,7 +52,8 @@ fun CreateEssentialsScreen(
     onNextClick: () -> Unit,
     onBackClick: () -> Unit,
     viewModel: CardCreationViewModel,
-    token: String
+    token: String,
+    onNavigateToCreateQuestion: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -128,11 +129,11 @@ fun CreateEssentialsScreen(
             
             // Name Field
             FieldWithSwitch(
-                label = "이름(필수)",
+                label = "이름(필수항목)",
                 value = cardInfo.name,
                 onValueChange = { onCardInfoChange(cardInfo.copy(name = it)) },
-                isEnabled = nameEnabled,
-                onEnabledChange = { nameEnabled = it },
+                isEnabled = true,
+                onEnabledChange = {},
                 isRequired = true
             )
             
@@ -140,9 +141,12 @@ fun CreateEssentialsScreen(
             
             // Company Field
             FieldWithSwitch(
-                label = "회사",
+                label = "회사명",
                 value = cardInfo.company,
-                onValueChange = { onCardInfoChange(cardInfo.copy(company = it)) },
+                onValueChange = {
+                    if (!companyEnabled) companyEnabled = true
+                    onCardInfoChange(cardInfo.copy(company = it))
+                },
                 isEnabled = companyEnabled,
                 onEnabledChange = { companyEnabled = it }
             )
@@ -151,9 +155,12 @@ fun CreateEssentialsScreen(
             
             // Position Field
             FieldWithSwitch(
-                label = "직위",
+                label = "직함",
                 value = cardInfo.position,
-                onValueChange = { onCardInfoChange(cardInfo.copy(position = it)) },
+                onValueChange = {
+                    if (!positionEnabled) positionEnabled = true
+                    onCardInfoChange(cardInfo.copy(position = it))
+                },
                 isEnabled = positionEnabled,
                 onEnabledChange = { positionEnabled = it }
             )
@@ -164,7 +171,10 @@ fun CreateEssentialsScreen(
             FieldWithSwitch(
                 label = "전화번호",
                 value = cardInfo.phone,
-                onValueChange = { onCardInfoChange(cardInfo.copy(phone = it)) },
+                onValueChange = {
+                    if (!phoneEnabled) phoneEnabled = true
+                    onCardInfoChange(cardInfo.copy(phone = it))
+                },
                 isEnabled = phoneEnabled,
                 onEnabledChange = { phoneEnabled = it }
             )
@@ -175,7 +185,10 @@ fun CreateEssentialsScreen(
             FieldWithSwitch(
                 label = "이메일",
                 value = cardInfo.email,
-                onValueChange = { onCardInfoChange(cardInfo.copy(email = it)) },
+                onValueChange = {
+                    if (!emailEnabled) emailEnabled = true
+                    onCardInfoChange(cardInfo.copy(email = it))
+                },
                 isEnabled = emailEnabled,
                 onEnabledChange = { emailEnabled = it }
             )
@@ -186,7 +199,10 @@ fun CreateEssentialsScreen(
             FieldWithSwitch(
                 label = "SNS",
                 value = cardInfo.sns,
-                onValueChange = { onCardInfoChange(cardInfo.copy(sns = it)) },
+                onValueChange = {
+                    if (!snsEnabled) snsEnabled = true
+                    onCardInfoChange(cardInfo.copy(sns = it))
+                },
                 isEnabled = snsEnabled,
                 onEnabledChange = { snsEnabled = it }
             )
@@ -204,11 +220,11 @@ fun CreateEssentialsScreen(
                     CircularProgressIndicator(color = PrimaryTeal)
                 }
             } else {
-                CardifyButton( //from formComponents
-                    text = "다음",
+                CardifyButton(
+                    text = "AI와 함께 명함 디자인하기",
                     onClick = {
-                        viewModel.updateCardInfo(cardInfo)
-                        viewModel.selectAndSaveCard("")
+                            viewModel.updateCardInfo(cardInfo)
+                            onNavigateToCreateQuestion()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -221,7 +237,7 @@ fun CreateEssentialsScreen(
             
             // Back Button
             CardifyButton(
-                text = "뒤로 가기",
+                text = "내명함으로 돌아가기",
                 onClick = onBackClick,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -252,29 +268,36 @@ private fun FieldWithSwitch(
             Text(
                 text = if (isRequired) "$label *" else label,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (isEnabled) MaterialTheme.colorScheme.onSurface 
-                       else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                color = if (isRequired || isEnabled) PrimaryTeal else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
             )
             Switch(
-                checked = isEnabled,
-                onCheckedChange = onEnabledChange,
+                checked = if (isRequired) true else isEnabled,
+                onCheckedChange = if (isRequired) null else onEnabledChange,
+                enabled = !isRequired,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = PrimaryTeal,
-                    checkedTrackColor = PrimaryTeal.copy(alpha = 0.5f)
+                    checkedTrackColor = PrimaryTeal.copy(alpha = 0.5f),
+                    uncheckedThumbColor = com.example.cardify.ui.theme.OffWhite,
+                    uncheckedTrackColor = com.example.cardify.ui.theme.OffWhite.copy(alpha = 0.5f)
                 )
             )
         }
-        
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .alpha(if (isEnabled) 1f else 0.6f)
+                .alpha(if (isRequired || isEnabled) 1f else 0.6f)
         ) {
             SimpleTextField(
                 value = value,
-                onValueChange = { if (isEnabled) onValueChange(it) },
+                onValueChange = { if (isRequired || isEnabled) onValueChange(it) },
                 label = label,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                onFocusChanged = {
+                    if (!isRequired && !isEnabled) {
+                        onEnabledChange(true)
+                    }
+                }
             )
         }
     }

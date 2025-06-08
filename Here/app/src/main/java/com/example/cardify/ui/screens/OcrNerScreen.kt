@@ -3,12 +3,9 @@ package com.example.cardify.ui.screens
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.Manifest
-import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.core.content.ContextCompat
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -54,17 +51,6 @@ fun OcrNerScreen(
         selectedImage.value = uri
     }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            selectedImage.value = saveBitmapToCache(context, bitmap)
-        }
-    }
-
-    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) {
-            cameraLauncher.launch(null)
-        }
-    }
 
     LaunchedEffect(selectedImage.value) {
         selectedImage.value?.let { uri ->
@@ -108,17 +94,6 @@ fun OcrNerScreen(
                 Text("사진 선택")
             }
 
-            Spacer(modifier = Modifier.padding(4.dp))
-
-            Button(onClick = {
-                if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
-                    cameraLauncher.launch(null)
-                } else {
-                    permissionLauncher.launch(Manifest.permission.CAMERA)
-                }
-            }) {
-                Text("사진 찍기")
-            }
 
             if (selectedImage.value != null && parsedCard != null) {
                 Button(onClick = {
@@ -135,11 +110,4 @@ fun OcrNerScreen(
     }
 }
 
-private fun saveBitmapToCache(context: android.content.Context, bitmap: Bitmap): Uri {
-    val file = java.io.File.createTempFile("card_", ".jpg", context.cacheDir)
-    file.outputStream().use { out ->
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, out)
-    }
-    return Uri.fromFile(file)
-}
 

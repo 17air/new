@@ -1,5 +1,6 @@
 package com.example.cardify.ui.screens
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -46,12 +47,17 @@ import kotlinx.coroutines.launch
 @Composable
 fun AddAutoClassifyScreen(
     navController: NavController,
-    viewModel: CardCreationViewModel
+    viewModel: CardCreationViewModel,
+    capturedImage: Bitmap
 ) {
     val scope = rememberCoroutineScope()
     val uiState by viewModel.uiState.collectAsState()
     val tokenManager = TokenManager(LocalContext.current)
     val token = tokenManager.getToken() ?: ""
+
+    LaunchedEffect(Unit) {
+        viewModel.analyzeCardImage(capturedImage, token)
+    }
 
     Scaffold(
         topBar = {
@@ -90,6 +96,13 @@ fun AddAutoClassifyScreen(
                     ) {
                         Text("분석 중 오류가 발생했습니다")
                         Text(uiState.error!!)
+                        Button(
+                            onClick = {
+                                scope.launch { viewModel.analyzeCardImage(capturedImage, token) }
+                            }
+                        ) {
+                            Text("다시 시도하기")
+                        }
                     }
                 } else {
                     Column(
@@ -140,7 +153,8 @@ fun AddAutoClassifyScreen(
                                         .size(150.dp)
                                         .clickable {
                                             viewModel.selectAndSaveCard(
-                                                index.toString()
+                                                index.toString(),
+                                                ""
                                             )
                                             navController.navigate(Screen.AddClassified.route)
                                         }

@@ -32,7 +32,6 @@ import com.example.cardify.models.CardBookViewModel
 import com.example.cardify.ui.screens.RegisterCompleteScreen
 import com.example.cardify.ui.screens.RegisterScreen
 import com.example.cardify.ui.screens.SplashScreen
-import com.example.cardify.ui.screens.AddFromCameraScreen
 import com.example.cardify.ui.screens.AddAutoClassifyScreen
 import com.example.cardify.ui.screens.AddClassifiedScreen
 
@@ -48,7 +47,6 @@ sealed class Screen(val route: String) {
     object CreateDesign : Screen("create_design")
     object CreateConfirm : Screen("create_confirm")
     object OcrNer : Screen("ocr_ner_screen")
-    object AddFromCamera : Screen("add_from_camera")
     object AddAutoClassify : Screen("add_auto_classify")
     object AddClassified : Screen("add_classified_screen")
     object CardBook : Screen("card_book_screen")
@@ -69,7 +67,6 @@ sealed class Screen(val route: String) {
             CreateDesign,
             CreateConfirm,
             OcrNer,
-            AddFromCamera,
             AddAutoClassify,
             AddClassified,
             CardBook,
@@ -189,7 +186,8 @@ fun AppNavigation() {
                 onNextClick = { navController.navigate(Screen.CreateQuestion.route) },
                 onBackClick = { navController.popBackStack() },
                 viewModel = cardCreationViewModel,
-                token = token
+                token = token,
+                onNavigateToCreateQuestion = { navController.navigate(Screen.CreateQuestion.route) }
             )
         }
 
@@ -212,9 +210,11 @@ fun AppNavigation() {
         composable(route = Screen.CreateProgress.route) {
             val tokenManager = TokenManager(LocalContext.current)
             val token = tokenManager.getToken() ?: ""
+            val answers by cardCreationViewModel.answers.collectAsState()
 
             CreateProgressScreen(
                 cardInfo = cardInfo,
+                userAnswers = answers.toSortedMap().values.toList(),
                 viewModel = cardCreationViewModel,
                 token = token,
                 cardBookViewModel = cardBookViewModel,
@@ -291,19 +291,6 @@ fun AppNavigation() {
                     popUpTo(Screen.OcrNer.route) { inclusive = true }
                 }
             }
-        }
-
-        composable(route = Screen.AddFromCamera.route) {
-            val tokenManager = TokenManager(LocalContext.current)
-            val token = tokenManager.getToken() ?: ""
-
-            AddFromCameraScreen(
-                navController = navController,
-                onImageCaptured = { bitmap ->
-                    cardCreationViewModel.analyzeCardImage(bitmap, token)
-                    navController.navigate(Screen.AddAutoClassify.route)
-                }
-            )
         }
 
         composable(route = Screen.AddAutoClassify.route) {
