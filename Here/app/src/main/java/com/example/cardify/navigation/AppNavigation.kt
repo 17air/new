@@ -33,6 +33,8 @@ import com.example.cardify.ui.screens.RegisterCompleteScreen
 import com.example.cardify.ui.screens.RegisterScreen
 import com.example.cardify.ui.screens.SplashScreen
 import com.example.cardify.ui.screens.AddFromCameraScreen
+import com.example.cardify.ui.screens.AddAutoClassifyScreen
+import com.example.cardify.ui.screens.AddClassifiedScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash_screen")
@@ -47,6 +49,8 @@ sealed class Screen(val route: String) {
     object CreateConfirm : Screen("create_confirm")
     object OcrNer : Screen("ocr_ner_screen")
     object AddFromCamera : Screen("add_from_camera")
+    object AddAutoClassify : Screen("add_auto_classify")
+    object AddClassified : Screen("add_classified_screen")
     object CardBook : Screen("card_book_screen")
     object CardDetail : Screen("card_detail/{cardId}") {
         fun createRoute(cardId: String) = "card_detail/$cardId"
@@ -66,6 +70,8 @@ sealed class Screen(val route: String) {
             CreateConfirm,
             OcrNer,
             AddFromCamera,
+            AddAutoClassify,
+            AddClassified,
             CardBook,
             CardDetail,
             Settings
@@ -288,7 +294,30 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.AddFromCamera.route) {
-            AddFromCameraScreen(navController = navController)
+            val tokenManager = TokenManager(LocalContext.current)
+            val token = tokenManager.getToken() ?: ""
+
+            AddFromCameraScreen(
+                navController = navController,
+                onImageCaptured = { bitmap ->
+                    cardCreationViewModel.analyzeCardImage(bitmap, token)
+                    navController.navigate(Screen.AddAutoClassify.route)
+                }
+            )
+        }
+
+        composable(route = Screen.AddAutoClassify.route) {
+            AddAutoClassifyScreen(
+                navController = navController,
+                viewModel = cardCreationViewModel
+            )
+        }
+
+        composable(route = Screen.AddClassified.route) {
+            AddClassifiedScreen(
+                navController = navController,
+                viewModel = cardCreationViewModel
+            )
         }
 
         composable(route = Screen.CardBook.route) {
