@@ -32,6 +32,7 @@ import com.example.cardify.models.CardBookViewModel
 import com.example.cardify.ui.screens.RegisterCompleteScreen
 import com.example.cardify.ui.screens.RegisterScreen
 import com.example.cardify.ui.screens.SplashScreen
+import com.example.cardify.ui.screens.AddFromCameraScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash_screen")
@@ -45,6 +46,7 @@ sealed class Screen(val route: String) {
     object CreateDesign : Screen("create_design")
     object CreateConfirm : Screen("create_confirm")
     object OcrNer : Screen("ocr_ner_screen")
+    object AddFromCamera : Screen("add_from_camera")
     object CardBook : Screen("card_book_screen")
     object CardDetail : Screen("card_detail/{cardId}") {
         fun createRoute(cardId: String) = "card_detail/$cardId"
@@ -63,6 +65,7 @@ sealed class Screen(val route: String) {
             CreateDesign,
             CreateConfirm,
             OcrNer,
+            AddFromCamera,
             CardBook,
             CardDetail,
             Settings
@@ -282,6 +285,10 @@ fun AppNavigation() {
                     popUpTo(Screen.OcrNer.route) { inclusive = true }
                 }
             }
+        }
+
+        composable(route = Screen.AddFromCamera.route) {
+            AddFromCameraScreen(navController = navController)
         }
 
         composable(route = Screen.CardBook.route) {
