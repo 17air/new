@@ -7,6 +7,7 @@ import com.example.cardify.api.CardifyApi
 import com.example.cardify.api.RetrofitInstance
 import com.example.cardify.api.SaveCardRequest
 import com.example.cardify.requestresponse.CardEnrollRequest
+import com.example.cardify.features.QuestionBank
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -93,7 +94,7 @@ class CardCreationViewModel(private val api: CardifyApi = RetrofitInstance.api) 
         }
     }
 
-    fun selectAndSaveCard(selectedImageIndex: String, base64Image: String) {
+    fun selectAndSaveCard(selectedImageIndex: String) {
         viewModelScope.launch {
             try {
                 _uiState.value = CardCreationUiState(isLoading = true)
@@ -138,7 +139,7 @@ class CardCreationViewModel(private val api: CardifyApi = RetrofitInstance.api) 
         _answers.value = currentAnswers
 
         // Move to next question if not at the last question
-        if (questionNumber < 5) {
+        if (questionNumber < QuestionBank.questions.size) {
             _currentQuestion.value = questionNumber + 1
         }
     }

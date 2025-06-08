@@ -28,12 +28,11 @@ import com.example.cardify.ui.screens.MainExistScreen
 import com.example.cardify.ui.screens.OcrNerScreen
 import com.example.cardify.ui.screens.CardBookScreen
 import com.example.cardify.ui.screens.SettingsScreen
+import com.example.cardify.features.QuestionBank
 import com.example.cardify.models.CardBookViewModel
 import com.example.cardify.ui.screens.RegisterCompleteScreen
 import com.example.cardify.ui.screens.RegisterScreen
 import com.example.cardify.ui.screens.SplashScreen
-import com.example.cardify.ui.screens.AddAutoClassifyScreen
-import com.example.cardify.ui.screens.AddClassifiedScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash_screen")
@@ -47,8 +46,6 @@ sealed class Screen(val route: String) {
     object CreateDesign : Screen("create_design")
     object CreateConfirm : Screen("create_confirm")
     object OcrNer : Screen("ocr_ner_screen")
-    object AddAutoClassify : Screen("add_auto_classify")
-    object AddClassified : Screen("add_classified_screen")
     object CardBook : Screen("card_book_screen")
     object CardDetail : Screen("card_detail/{cardId}") {
         fun createRoute(cardId: String) = "card_detail/$cardId"
@@ -67,8 +64,6 @@ sealed class Screen(val route: String) {
             CreateDesign,
             CreateConfirm,
             OcrNer,
-            AddAutoClassify,
-            AddClassified,
             CardBook,
             CardDetail,
             Settings
@@ -192,18 +187,25 @@ fun AppNavigation() {
         }
 
         composable(route = Screen.CreateQuestion.route) {
+            val question = remember(currentQuestion) {
+                QuestionBank.questions[currentQuestion - 1]
+            }
             CreateQuestionScreen(
-                questionNumber = currentQuestion,
-                onAnswerSelected = { answer ->
+                currentQuestionIndex = currentQuestion - 1,
+                totalQuestions = QuestionBank.questions.size,
+                question = question.question,
+                options = question.options,
+                onSelectAnswer = { index ->
+                    val answer = question.options[index]
                     cardCreationViewModel.recordAnswer(currentQuestion, answer)
-                    if (currentQuestion >= 5) {
+                    if (currentQuestion >= QuestionBank.questions.size) {
                         navController.navigate(Screen.CreateProgress.route)
                     }
                 },
-                onCancelClick = {
+                onCancel = {
                     cardCreationViewModel.resetCreation()
                     navController.popBackStack(Screen.CreateEssentials.route, inclusive = true)
-                },
+                }
             )
         }
 
@@ -293,19 +295,7 @@ fun AppNavigation() {
             }
         }
 
-        composable(route = Screen.AddAutoClassify.route) {
-            AddAutoClassifyScreen(
-                navController = navController,
-                viewModel = cardCreationViewModel
-            )
-        }
 
-        composable(route = Screen.AddClassified.route) {
-            AddClassifiedScreen(
-                navController = navController,
-                viewModel = cardCreationViewModel
-            )
-        }
 
         composable(route = Screen.CardBook.route) {
             val cards by cardBookViewModel.cards.collectAsState()

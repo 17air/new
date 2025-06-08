@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -292,12 +293,13 @@ private fun FieldWithSwitch(
                 value = value,
                 onValueChange = { if (isRequired || isEnabled) onValueChange(it) },
                 label = label,
-                modifier = Modifier.fillMaxWidth(),
-                onFocusChanged = {
-                    if (!isRequired && !isEnabled) {
-                        onEnabledChange(true)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .onFocusChanged {
+                        if (!isRequired && !isEnabled) {
+                            onEnabledChange(true)
+                        }
                     }
-                }
             )
         }
     }
